@@ -43,6 +43,12 @@
                                  "register")
   "Commands that can be passed to `hledger-jdo` function defined below.")
 
+(defcustom hledger-program "hledger"
+  "The program to call hledger with."
+  :group 'hledger
+  :risky t
+  :type 'string)
+
 (defcustom hledger-extra-args " "
   "Extra arguments included while running Hledger for reports, e.g. -S."
   :group 'hledger
@@ -241,7 +247,7 @@ time."
 If the command failed, returns a cons with the error status and
 the output to `standard-error' and `standard-output'."
   (with-temp-buffer
-    (let ((status (call-process "hledger"
+    (let ((status (call-process hledger-program
                                 nil
                                 t
                                 nil
@@ -255,7 +261,7 @@ the output to `standard-error' and `standard-output'."
 
 (defun hledger-shell-command-to-string (command-string)
   "Return result of running hledger command COMMAND-STRING."
-  (shell-command-to-string (concat "hledger -f " hledger-jfile " "
+  (shell-command-to-string (concat hledger-program " -f " hledger-jfile " "
                                    command-string)))
 
 (defun hledger-ask-and-save-buffer ()
@@ -327,8 +333,8 @@ STRING can be multiple words separated by a space."
                       (append constant-args (list string))))
          (exit-code (if buffer
                         (with-current-buffer buffer
-                          (apply #'call-process-region nil nil "hledger" nil dest-buffer nil full-args))
-                      (apply #'call-process "hledger" nil dest-buffer nil full-args)))
+                          (apply #'call-process-region nil nil hledger-program nil dest-buffer nil full-args))
+                      (apply #'call-process hledger-program nil dest-buffer nil full-args)))
          (output (string-trim-right (with-current-buffer dest-buffer
                                       (buffer-string)))))
     (kill-buffer dest-buffer)
@@ -361,7 +367,7 @@ The position of point remains unaltered after this function
 call.  This is for letting the caller transform the output more
 easily."
   (let ((jbuffer (hledger-get-perfin-buffer keep-bufferp))
-        (jcommand (concat "hledger -f "
+        (jcommand (concat hledger-program " -f "
                           (shell-quote-argument hledger-jfile)
                           " "
                           command
